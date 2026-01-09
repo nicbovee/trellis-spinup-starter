@@ -10,10 +10,12 @@ This is based on the excellent writeup by [intelligence](https://intermissionstu
 ## Setup
 
 1. Clone this repository
-   '''
+
+```bash
    git clone https://github.com/nicbovee/trellis-spinupwp.git --depth 1
    cd trellis-spinupwp
-   '''
+```
+
 2. Run the initialization script to configure your Trellis setup
 3. Commit your changes to the repository.
 4. Run `trellis deploy production` to deploy your site to production.
