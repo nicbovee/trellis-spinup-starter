@@ -12,7 +12,7 @@ This is based on the excellent writeup by [intelligence](https://intermissionstu
 1. Clone this repository
 
 ```bash
-   git clone https://github.com/nicbovee/trellis-spinupwp.git --depth 1
+   git clone git@github.com:nicbovee/trellis-spinup-starter.git --depth 1
    cd trellis-spinupwp
 ```
 
