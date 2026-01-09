@@ -71,6 +71,38 @@ replace_in_file() {
 
 echo -e "${GREEN}=== Trellis Spinup Initialization Script ===${NC}\n"
 
+# Verify required files exist
+echo -e "${GREEN}Verifying required files exist...${NC}"
+MISSING_FILES=()
+
+REQUIRED_FILES=(
+    "${TRELLIS_DIR}/group_vars/development/vault.yml"
+    "${TRELLIS_DIR}/group_vars/production/vault.yml"
+    "${TRELLIS_DIR}/group_vars/production/wordpress_sites.yml"
+    "${TRELLIS_DIR}/group_vars/production/main.yml"
+    "${TRELLIS_DIR}/hosts/production"
+    "${TRELLIS_DIR}/group_vars/development/wordpress_sites.yml"
+)
+
+for file in "${REQUIRED_FILES[@]}"; do
+    if [ ! -f "$file" ]; then
+        MISSING_FILES+=("$file")
+    fi
+done
+
+if [ ${#MISSING_FILES[@]} -gt 0 ]; then
+    echo -e "${RED}Error: The following required files are missing:${NC}"
+    for file in "${MISSING_FILES[@]}"; do
+        echo -e "  ${RED}✗${NC} $file"
+    done
+    echo ""
+    echo -e "${YELLOW}Please ensure you have cloned the complete repository.${NC}"
+    echo -e "${YELLOW}If you cloned with --depth 1, try cloning without it to get all files.${NC}"
+    exit 1
+fi
+
+echo -e "${GREEN}✓ All required files found${NC}\n"
+
 # Prompt for production environment variables
 echo -e "${YELLOW}Production Environment Configuration${NC}"
 echo "----------------------------------------"
@@ -157,6 +189,13 @@ VAULT_PASS=$(generate_vault_pass)
 
 echo -e "${GREEN}Updating vault.yml files...${NC}"
 
+# Verify trellis directory exists
+if [ ! -d "$TRELLIS_DIR" ]; then
+    echo -e "${RED}Error: Trellis directory not found at ${TRELLIS_DIR}${NC}"
+    echo "Please run this script from the project root directory."
+    exit 1
+fi
+
 # Decrypt vault files if they're already encrypted (for re-running the script)
 cd "$TRELLIS_DIR"
 if [ -f ".vault_pass" ]; then
@@ -171,10 +210,11 @@ fi
 # Update development vault.yml
 DEV_VAULT="${TRELLIS_DIR}/group_vars/development/vault.yml"
 if [ -f "$DEV_VAULT" ]; then
+    echo -e "  Updating ${DEV_VAULT}..."
     replace_in_file "$DEV_VAULT" "SPINUP_DB_USER" "$SPINUP_DB_USER"
     replace_in_file "$DEV_VAULT" "SPINUP_DB_NAME" "$SPINUP_DB_NAME"
     replace_in_file "$DEV_VAULT" "SPINUP_DB_PASSWORD" "$SPINUP_DB_PASSWORD"
-    replace_in_file "$DEV_VAULT" "GENERATE_ME" "$PROD_MYSQL_ROOT_PASSWORD"
+    replace_in_file "$DEV_VAULT" "vault_mysql_root_password: GENERATE_ME" "vault_mysql_root_password: ${PROD_MYSQL_ROOT_PASSWORD}"
     replace_in_file "$DEV_VAULT" "auth_key: GENERATE_ME" "auth_key: ${PROD_AUTH_KEY}"
     replace_in_file "$DEV_VAULT" "secure_auth_key: GENERATE_ME" "secure_auth_key: ${PROD_SECURE_AUTH_KEY}"
     replace_in_file "$DEV_VAULT" "logged_in_key: GENERATE_ME" "logged_in_key: ${PROD_LOGGED_IN_KEY}"
@@ -184,11 +224,14 @@ if [ -f "$DEV_VAULT" ]; then
     replace_in_file "$DEV_VAULT" "logged_in_salt: GENERATE_ME" "logged_in_salt: ${PROD_LOGGED_IN_SALT}"
     replace_in_file "$DEV_VAULT" "nonce_salt: GENERATE_ME" "nonce_salt: ${PROD_NONCE_SALT}"
     replace_in_file "$DEV_VAULT" "admin_password: GENERATE_ME" "admin_password: ${PROD_ADMIN_PASSWORD}"
+else
+    echo -e "${YELLOW}  Warning: ${DEV_VAULT} not found, skipping...${NC}"
 fi
 
 # Update production vault.yml
 PROD_VAULT="${TRELLIS_DIR}/group_vars/production/vault.yml"
 if [ -f "$PROD_VAULT" ]; then
+    echo -e "  Updating ${PROD_VAULT}..."
     replace_in_file "$PROD_VAULT" "SPINUP_DB_USER" "$SPINUP_DB_USER"
     replace_in_file "$PROD_VAULT" "SPINUP_DB_NAME" "$SPINUP_DB_NAME"
     replace_in_file "$PROD_VAULT" "SPINUP_DB_PASSWORD" "$SPINUP_DB_PASSWORD"
@@ -213,16 +256,19 @@ if [ -f "$PROD_VAULT" ]; then
     replace_in_file "$PROD_VAULT" "logged_in_salt: GENERATE_ME" "logged_in_salt: ${PROD_LOGGED_IN_SALT}"
     replace_in_file "$PROD_VAULT" "nonce_salt: GENERATE_ME" "nonce_salt: ${PROD_NONCE_SALT}"
     replace_in_file "$PROD_VAULT" "admin_password: GENERATE_ME" "admin_password: ${PROD_ADMIN_PASSWORD}"
+else
+    echo -e "${YELLOW}  Warning: ${PROD_VAULT} not found, skipping...${NC}"
 fi
 
 # Update staging vault.yml if needed
 if [ "$NEED_STAGING" = "yes" ] || [ "$NEED_STAGING" = "y" ]; then
     STAGING_VAULT="${TRELLIS_DIR}/group_vars/staging/vault.yml"
     if [ -f "$STAGING_VAULT" ]; then
+        echo -e "  Updating ${STAGING_VAULT}..."
         replace_in_file "$STAGING_VAULT" "SPINUP_DB_USER" "$SPINUP_STAGING_DB_USER"
         replace_in_file "$STAGING_VAULT" "SPINUP_DB_NAME" "$SPINUP_STAGING_DB_NAME"
         replace_in_file "$STAGING_VAULT" "SPINUP_DB_PASSWORD" "$SPINUP_STAGING_DB_PASSWORD"
-        replace_in_file "$STAGING_VAULT" "GENERATE_ME" "$STAGING_MYSQL_ROOT_PASSWORD"
+        replace_in_file "$STAGING_VAULT" "vault_mysql_root_password: GENERATE_ME" "vault_mysql_root_password: ${STAGING_MYSQL_ROOT_PASSWORD}"
         replace_in_file "$STAGING_VAULT" "password: GENERATE_ME" "password: ${STAGING_USER_PASSWORD}"
         replace_in_file "$STAGING_VAULT" "salt: GENERATE_ME" "salt: ${STAGING_USER_SALT}"
         replace_in_file "$STAGING_VAULT" "auth_key: GENERATE_ME" "auth_key: ${STAGING_AUTH_KEY}"
@@ -234,6 +280,8 @@ if [ "$NEED_STAGING" = "yes" ] || [ "$NEED_STAGING" = "y" ]; then
         replace_in_file "$STAGING_VAULT" "logged_in_salt: GENERATE_ME" "logged_in_salt: ${STAGING_LOGGED_IN_SALT}"
         replace_in_file "$STAGING_VAULT" "nonce_salt: GENERATE_ME" "nonce_salt: ${STAGING_NONCE_SALT}"
         replace_in_file "$STAGING_VAULT" "admin_password: GENERATE_ME" "admin_password: ${STAGING_ADMIN_PASSWORD}"
+    else
+        echo -e "${YELLOW}  Warning: ${STAGING_VAULT} not found, skipping...${NC}"
     fi
 fi
 
@@ -250,16 +298,22 @@ echo -e "${GREEN}Updating hosts files...${NC}"
 # Update production hosts file
 PROD_HOSTS="${TRELLIS_DIR}/hosts/production"
 if [ -f "$PROD_HOSTS" ]; then
+    echo -e "  Updating ${PROD_HOSTS}..."
     replace_in_file "$PROD_HOSTS" "SPINUP_HOST_IP" "$SPINUP_HOST_IP"
     replace_in_file "$PROD_HOSTS" "SPINUP_SSH_USER" "$SPINUP_SSH_USER"
+else
+    echo -e "${YELLOW}  Warning: ${PROD_HOSTS} not found, skipping...${NC}"
 fi
 
 # Update staging hosts file if needed
 if [ "$NEED_STAGING" = "yes" ] || [ "$NEED_STAGING" = "y" ]; then
     STAGING_HOSTS="${TRELLIS_DIR}/hosts/staging"
     if [ -f "$STAGING_HOSTS" ]; then
+        echo -e "  Updating ${STAGING_HOSTS}..."
         replace_in_file "$STAGING_HOSTS" "SPINUP_STAGING_HOST_IP" "$SPINUP_STAGING_HOST_IP"
         replace_in_file "$STAGING_HOSTS" "SPINUP_SSH_USER" "$SPINUP_STAGING_SSH_USER"
+    else
+        echo -e "${YELLOW}  Warning: ${STAGING_HOSTS} not found, skipping...${NC}"
     fi
 fi
 
@@ -374,20 +428,29 @@ PYTHON_EOF
 # Update development wordpress_sites.yml (use .test extension)
 DEV_WP_SITES="${TRELLIS_DIR}/group_vars/development/wordpress_sites.yml"
 if [ -f "$DEV_WP_SITES" ]; then
+    echo -e "  Updating ${DEV_WP_SITES}..."
     update_wordpress_sites "$DEV_WP_SITES" "$PROD_DOMAIN" "$PROD_ALT_DOMAINS" "$PROD_ADMIN_EMAIL" "true" "$PROD_GIT_REPO" "$PROD_GIT_BRANCH"
+else
+    echo -e "${YELLOW}  Warning: ${DEV_WP_SITES} not found, skipping...${NC}"
 fi
 
 # Update production wordpress_sites.yml
 PROD_WP_SITES="${TRELLIS_DIR}/group_vars/production/wordpress_sites.yml"
 if [ -f "$PROD_WP_SITES" ]; then
+    echo -e "  Updating ${PROD_WP_SITES}..."
     update_wordpress_sites "$PROD_WP_SITES" "$PROD_DOMAIN" "$PROD_ALT_DOMAINS" "$PROD_ADMIN_EMAIL" "false" "$PROD_GIT_REPO" "$PROD_GIT_BRANCH"
+else
+    echo -e "${YELLOW}  Warning: ${PROD_WP_SITES} not found, skipping...${NC}"
 fi
 
 # Update staging wordpress_sites.yml if needed
 if [ "$NEED_STAGING" = "yes" ] || [ "$NEED_STAGING" = "y" ]; then
     STAGING_WP_SITES="${TRELLIS_DIR}/group_vars/staging/wordpress_sites.yml"
     if [ -f "$STAGING_WP_SITES" ]; then
+        echo -e "  Updating ${STAGING_WP_SITES}..."
         update_wordpress_sites "$STAGING_WP_SITES" "$STAGING_DOMAIN" "$STAGING_ALT_DOMAINS" "$STAGING_ADMIN_EMAIL" "false" "$STAGING_GIT_REPO" "$STAGING_GIT_BRANCH"
+    else
+        echo -e "${YELLOW}  Warning: ${STAGING_WP_SITES} not found, skipping...${NC}"
     fi
 fi
 
@@ -396,21 +459,69 @@ echo -e "${GREEN}Updating main.yml files...${NC}"
 # Update production main.yml
 PROD_MAIN="${TRELLIS_DIR}/group_vars/production/main.yml"
 if [ -f "$PROD_MAIN" ]; then
+    echo -e "  Updating ${PROD_MAIN}..."
     replace_in_file "$PROD_MAIN" "SPINUP_SITE_DIRECTORY" "$SPINUP_SITE_DIRECTORY"
     replace_in_file "$PROD_MAIN" "SPINUP_SSH_USER" "$SPINUP_SSH_USER"
+else
+    echo -e "${YELLOW}  Warning: ${PROD_MAIN} not found, skipping...${NC}"
 fi
 
 # Update staging main.yml if needed
 if [ "$NEED_STAGING" = "yes" ] || [ "$NEED_STAGING" = "y" ]; then
     STAGING_MAIN="${TRELLIS_DIR}/group_vars/staging/main.yml"
     if [ -f "$STAGING_MAIN" ]; then
+        echo -e "  Updating ${STAGING_MAIN}..."
         replace_in_file "$STAGING_MAIN" "SPINUP_STAGING_SITE_DIRECTORY" "$SPINUP_STAGING_SITE_DIRECTORY"
         replace_in_file "$STAGING_MAIN" "SPINUP_STAGING_SSH_USER" "$SPINUP_STAGING_SSH_USER"
+    else
+        echo -e "${YELLOW}  Warning: ${STAGING_MAIN} not found, skipping...${NC}"
     fi
 fi
 
 echo ""
 echo -e "${GREEN}✓ Initialization complete!${NC}"
+echo ""
+echo -e "${YELLOW}Summary of updated files:${NC}"
+
+# Summary of what was updated
+UPDATED_FILES=()
+if [ -f "${TRELLIS_DIR}/group_vars/development/vault.yml" ]; then
+    UPDATED_FILES+=("✓ development/vault.yml")
+fi
+if [ -f "${TRELLIS_DIR}/group_vars/production/vault.yml" ]; then
+    UPDATED_FILES+=("✓ production/vault.yml")
+fi
+if [ -f "${TRELLIS_DIR}/group_vars/production/wordpress_sites.yml" ]; then
+    UPDATED_FILES+=("✓ production/wordpress_sites.yml")
+fi
+if [ -f "${TRELLIS_DIR}/group_vars/production/main.yml" ]; then
+    UPDATED_FILES+=("✓ production/main.yml")
+fi
+if [ -f "${TRELLIS_DIR}/hosts/production" ]; then
+    UPDATED_FILES+=("✓ hosts/production")
+fi
+if [ -f "${TRELLIS_DIR}/group_vars/development/wordpress_sites.yml" ]; then
+    UPDATED_FILES+=("✓ development/wordpress_sites.yml")
+fi
+if [ "$NEED_STAGING" = "yes" ] || [ "$NEED_STAGING" = "y" ]; then
+    if [ -f "${TRELLIS_DIR}/group_vars/staging/vault.yml" ]; then
+        UPDATED_FILES+=("✓ staging/vault.yml")
+    fi
+    if [ -f "${TRELLIS_DIR}/group_vars/staging/wordpress_sites.yml" ]; then
+        UPDATED_FILES+=("✓ staging/wordpress_sites.yml")
+    fi
+    if [ -f "${TRELLIS_DIR}/group_vars/staging/main.yml" ]; then
+        UPDATED_FILES+=("✓ staging/main.yml")
+    fi
+    if [ -f "${TRELLIS_DIR}/hosts/staging" ]; then
+        UPDATED_FILES+=("✓ hosts/staging")
+    fi
+fi
+
+for file in "${UPDATED_FILES[@]}"; do
+    echo "  ${file}"
+done
+
 echo ""
 echo -e "${YELLOW}Important:${NC}"
 echo "  - The .vault_pass file has been created in the trellis directory"

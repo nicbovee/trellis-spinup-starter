@@ -12,9 +12,11 @@ This is based on the excellent writeup by [intelligence](https://intermissionstu
 1. Clone this repository
 
 ```bash
-   git clone git@github.com:nicbovee/trellis-spinup-starter.git --depth 1 example.com
-   cd trellis-spinupwp
+   git clone git@github.com:nicbovee/trellis-spinup-starter.git example.com
+   cd example.com
 ```
+
+**Note:** Make sure you clone the complete repository (without `--depth 1`) to ensure all configuration files are included.
 
 2. Follow steps in the [write up](https://intermissionstudio.notion.site/Use-Trellis-for-deployments-on-SpinupWP-2d6fd7dcc1ed4a04b829984eb9ba59a0) to
    setup SpinupWP and create a blank site.
