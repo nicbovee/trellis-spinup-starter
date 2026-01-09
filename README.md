@@ -16,9 +16,11 @@ This is based on the excellent writeup by [intelligence](https://intermissionstu
    cd trellis-spinupwp
 ```
 
-2. Run the initialization script to configure your Trellis setup
-3. Commit your changes to the repository.
-4. Run `trellis deploy production` to deploy your site to production.
+2. Follow steps in the [write up](https://intermissionstudio.notion.site/Use-Trellis-for-deployments-on-SpinupWP-2d6fd7dcc1ed4a04b829984eb9ba59a0) to
+   setup SpinupWP and create a blank site.
+3. Run the initialization script to configure your Trellis setup
+4. Commit your changes to the repository.
+5. Run `trellis deploy production` to deploy your site to production.
 
 ## Initialization Script
 
