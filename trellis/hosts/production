@@ -1,0 +1,10 @@
+# Add each host to the [production] group and to a "type" group such as [web] or [db].
+# List each machine only once per [group], even if it will host multiple sites.
+
+SPINUP_HOST_IP ansible_host=SPINUP_HOST_IP ansible_ssh_port=22 ansible_ssh_extra_args='-o StrictHostKeyChecking=no' ansible_user=SPINUP_SSH_USER
+
+[web]
+SPINUP_HOST_IP
+
+[production]
+SPINUP_HOST_IP

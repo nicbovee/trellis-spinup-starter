@@ -1,0 +1,5 @@
+project_root: /sites/SPINUP_STAGING_SITE_DIRECTORY/files
+www_root: /sites/SPINUP_STAGING_SITE_DIRECTORY/files
+web_user: SPINUP_STAGING_SSH_USER
+web_group: SPINUP_STAGING_SSH_USER
+mysql_root_password: "{{ vault_mysql_root_password }}" # Define this variable in group_vars/staging/vault.yml

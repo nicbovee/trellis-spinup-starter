@@ -1,0 +1,9 @@
+.vault_pass
+vendor/roles
+*.py[co]
+*.retry
+.trellis/*
+!.trellis/cli.yml
+trellis.cli.local.yml
+
+.DS_Store

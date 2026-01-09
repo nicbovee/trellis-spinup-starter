@@ -1,0 +1,23 @@
+# Created by trellis-cli v1.14.0
+# Documentation: https://roots.io/trellis/docs/vault/
+
+vault_mysql_root_password:
+vault_users:
+  - name: "{{ admin_user }}"
+    password: GENERATE_ME
+    salt: GENERATE_ME
+vault_wordpress_sites:
+  trellis-spinupwp.com:
+    admin_password: GENERATE_ME
+    env:
+      db_user: SPINUP_DB_USER
+      db_name: SPINUP_DB_NAME
+      db_password: SPINUP_DB_PASSWORD
+      auth_key: GENERATE_ME
+      secure_auth_key: GENERATE_ME
+      logged_in_key: GENERATE_ME
+      nonce_key: GENERATE_ME
+      auth_salt: GENERATE_ME
+      secure_auth_salt: GENERATE_ME
+      logged_in_salt: GENERATE_ME
+      nonce_salt: GENERATE_ME

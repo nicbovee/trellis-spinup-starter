@@ -1,0 +1,19 @@
+# Documentation: https://roots.io/trellis/docs/wordpress-sites/
+
+wordpress_sites:
+  trellis-spinupwp.com:
+    site_hosts:
+      - canonical: trellis-spinupwp.com
+        redirects:
+          - www.trellis-spinupwp.com
+    local_path: ../site
+    branch: main
+    repo: git@github.com:example/example.git
+    repo_subtree_path: site
+    multisite:
+      enabled: false
+    ssl:
+      enabled: true
+      provider: self-signed
+    cache:
+      enabled: true

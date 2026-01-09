@@ -1,0 +1,17 @@
+# Documentation: https://roots.io/trellis/docs/wordpress-sites/
+
+wordpress_sites:
+  trellis-spinupwp.com:
+    site_hosts:
+      - canonical: www.trellis-spinupwp.test
+        redirects:
+          - trellis-spinupwp.test
+    local_path: ../site
+    admin_email: admin@www.trellis-spinupwp.test
+    multisite:
+      enabled: false
+    ssl:
+      enabled: false
+      provider: self-signed
+    cache:
+      enabled: false
